@@ -1,0 +1,32 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+train_df = pd.read_csv('../dataset/renad_data.csv')
+
+# Välj features (X) och målvariabel (y)
+X = train_df.drop(['Survived', 'Name', 'Ticket', 'PassengerId'], axis=1)
+y = train_df['Survived']
+
+import umap.umap_ as umap
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+
+# Skalning av data (PCA fungerar bäst på skalerade data)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Applicera UMAP (t.ex. reducera till 2 dimensioner)
+umap_model = umap.UMAP(n_components=2, random_state=42)
+X_umap = umap_model.fit_transform(X_scaled)
+
+# Dela upp i tränings- och testdata
+X_train, X_test, y_train, y_test = train_test_split(X_umap, y, test_size=0.2, random_state=42)
+
+# Träna KNN
+knn_model = KNeighborsClassifier(n_neighbors=5)
+knn_model.fit(X_train, y_train)
+
+# Prediktera och utvärdera
+y_pred_knn = knn_model.predict(X_test)
+print("KNN with UMAP Accuracy:", accuracy_score(y_test, y_pred_knn))
